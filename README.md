@@ -3,9 +3,9 @@
 Spark @ CLO
 Run a local spark cluster with AWS integrations.
 
-# Docker Setup
+## Docker Setup
 
-## Prerequisites
+### Prerequisites
 
 Before you begin, ensure you have the following prerequisites installed and configured:
 
@@ -13,7 +13,7 @@ Before you begin, ensure you have the following prerequisites installed and conf
 - **AWS CLI**: Ensure AWS CLI is installed and configured for SSO. Follow the [AWS CLI configuration guide](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-sso.html).
 - **`aws-sso-creds` utility**: Helper utility for managing AWS SSO credentials. [repo](https://github.com/jaxxstorm/aws-sso-creds).
 
-## Configuration
+### Configuration
 
 To interact with AWS services from within the Spark cluster the following environment variables must set:
 
@@ -24,7 +24,7 @@ To interact with AWS services from within the Spark cluster the following enviro
 
 These credentials are necessary for Spark executors to authenticate with AWS services.
 
-### Setting up AWS SSO 
+#### Setting up AWS SSO 
 
 If you are using AWS Single Sign-On (SSO), export temporary credentials via the `aws-sso-creds` utility. 
 
@@ -39,7 +39,7 @@ export AWS_REGION=us-east-1
 env | grep AWS_
 ```
 
-# Starting the Spark cluster
+## Starting the Spark cluster
 
 With your AWS credentials set, you can now start your Spark cluster
 
@@ -57,7 +57,7 @@ To run the cluster in the background, add the -d flag:
 docker-compose up -d --scale spark-worker=3
 ```
 
-# Stopping the cluster
+## Stopping the cluster
 
 ```sh
 docker-compose down
