@@ -93,6 +93,11 @@ spark = SparkSession.builder \
 from pyspark.sql import functions as F
 from pyspark.sql.types import DecimalType
 
+#load data from the catalog
+df_hist = spark.read \
+    .format("iceberg") \
+    .load("glue_catalog.dashboard.hist")
+
 
 df_sum_birds = df_hist.groupBy("location") \
     .agg(F.sum("birds_passed").alias("total_birds_passed")) \
