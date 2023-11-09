@@ -54,25 +54,5 @@ services:
       - '18080:18080'
     volumes:
       - ./spark-events:/opt/spark/spark-events
-  jupyter-notebook:
-    image: my-custom-spark-image
-    container_name: my-jupyter-notebook
-    depends_on:
-      spark-master:
-        condition: service_healthy
-    ports:
-      - '9999:8888'
-    volumes:
-      - ./data:/opt/spark/data
-      - ./notebooks:/opt/spark/notebooks
-    command: ["notebook"]
-    environment:
-      - AWS_ACCESS_KEY_ID
-      - AWS_SECRET_ACCESS_KEY
-      - AWS_SESSION_TOKEN
-      - AWS_REGION
-    env_file:
-      - .env.spark
-
 volumes:
   spark-events:

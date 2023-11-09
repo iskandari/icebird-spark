@@ -6,7 +6,7 @@ USER root
 RUN apt-get update && apt-get install -y python3 python3-pip && \
     pip3 install jupyter && \
     rm -rf /var/lib/apt/lists/*
-
+    
 # Make entrypoint script executable
 COPY entrypoint.sh /opt/
 RUN chmod +x /opt/entrypoint.sh
@@ -35,6 +35,5 @@ ENV SPARK_MASTER="spark://spark-master:7077"
 ENV SPARK_MASTER_HOST spark-master
 ENV SPARK_MASTER_PORT 7077
 ENV PYSPARK_PYTHON python3
-
 
 ENTRYPOINT ["/opt/entrypoint.sh", "master"]
