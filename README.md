@@ -59,6 +59,42 @@ docker-compose up -d --scale spark-worker=3
 
 ## Connecting with Python
 
+Import your sso credentials
+
+```python
+import os
+import subprocess
+import re
+
+# Import creds into python
+command = "aws-sso-creds export -p sso-admin"
+result = subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+
+
+for line in result.stdout.strip().split('\n'):
+    if line.startswith('export '):
+        # Split the line into key and value based on the first '=' found
+        key, value = line.split('=', 1)
+        key = key.replace('export ', '').strip()
+        value = value.strip()
+        os.environ[key] = value
+
+# Verify the environment variables are set
+print(os.getenv('AWS_ACCESS_KEY_ID'))
+print(os.getenv('AWS_SECRET_ACCESS_KEY'))
+print(os.getenv('AWS_SESSION_TOKEN'))
+
+os.environ['AWS_REGION'] = 'us-east-1'
+
+credentials = {
+'AccessKeyId': os.environ['AWS_ACCESS_KEY_ID'],
+'SecretAccessKey': os.environ['AWS_SECRET_ACCESS_KEY'],
+'SessionToken': os.environ['AWS_SESSION_TOKEN']
+}
+```
+
+Define a config for your Spark context
+
 ```python
 
 jars_packages = (
