@@ -11,7 +11,7 @@ Before you begin, ensure you have the following prerequisites installed and conf
 
 - **Docker**: Please follow the [Docker installation guide](https://docs.docker.com/get-docker/).
 - **AWS CLI**: Ensure AWS CLI is installed and configured for SSO. Follow the [AWS CLI configuration guide](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-sso.html).
-- **`aws-sso-creds` utility**: Helper utility for managing AWS SSO credentials. [repo](https://github.com/jaxxstorm/aws-sso-creds).
+- **`aws-sso-creds` y**: Helper utility for managing AWS SSO credentials [repo](https://github.com/jaxxstorm/aws-sso-creds).
 
 ### Configuration
 
