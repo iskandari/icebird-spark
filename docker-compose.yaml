@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  spark-master:
+    container_name: my-spark-master
+    image: my-custom-spark-image
+    entrypoint: ['/opt/entrypoint.sh', 'master']
+    environment:
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
+      - AWS_SESSION_TOKEN
+      - AWS_REGION
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8080" ]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+    ports:
+      - '9090:8080'
+      - '7077:7077'
+    volumes:
+      - ./data:/opt/spark/data
+    env_file:
+      - .env.spark
+
+  spark-worker:
+    image: my-custom-spark-image
+    entrypoint: ['/opt/entrypoint.sh', 'worker']
+    environment:
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
+      - AWS_SESSION_TOKEN
+      - AWS_REGION
+    depends_on:
+      - spark-master
+    env_file:
+      - .env.spark
+    volumes:
+      - ./data:/opt/spark/data
+
+  spark-history-server:
+    image: my-custom-spark-image
+    entrypoint: ['/opt/entrypoint.sh', 'history']
+    environment:
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
+      - AWS_SESSION_TOKEN
+      - AWS_REGION
+    depends_on:
+      - spark-master
+    env_file:
+      - .env.spark
+    ports:
+      - '18080:18080'
+    volumes:
+      - ./spark-events:/opt/spark/spark-events
+
+volumes:
+  spark-events:
