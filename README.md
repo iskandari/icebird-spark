@@ -29,7 +29,36 @@ These credentials are necessary for Spark executors to authenticate with AWS ser
 If you are using AWS Single Sign-On (SSO), export temporary credentials via the `aws-sso-creds` utility. 
 
 ```sh
-aws sso login --profile your-aws-sso-profile
-eval $(aws-sso-creds export)
+aws sso login --profile my-sso-profile
+aws-sso-creds export -p my-sso-profile
+
+#export region
+export AWS_REGION=us-east-1
+
+#show env variables
+env | grep AWS_
 ```
 
+# Starting the Spark cluster
+
+With your AWS credentials set, you can now start your Spark cluster
+
+
+In the same directory as the Dockerfile, build the container:
+```sh
+docker-compose build
+```
+Start the Spark cluster with 3 workers
+```sh
+docker-compose up --scale spark-worker=3
+```
+To run the cluster in the background, add the -d flag:
+```sh
+docker-compose up -d --scale spark-worker=3
+```
+
+# Stopping the cluster
+
+```sh
+docker-compose down
+```
