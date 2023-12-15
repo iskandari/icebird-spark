@@ -31,11 +31,16 @@ Define a config for your Spark context
 
 ```python
 
+warehouse_dir = "s3a://icevogel/"
+
 jars_packages = (
     "org.apache.hadoop:hadoop-aws:3.3.6,"
     "org.apache.iceberg:iceberg-spark-runtime-3.2_2.12:0.14.0,"
     "software.amazon.awssdk:url-connection-client:2.17.178,"
-    "software.amazon.awssdk:bundle:2.17.178"
+    "software.amazon.awssdk:bundle:2.17.178,"
+    "org.apache.sedona:sedona-spark-shaded-3.4_2.12:1.5.0,"
+    "org.datasyslab:geotools-wrapper:1.5.0-28.2,"
+    "org.apache.spark:spark-hadoop-cloud_2.13:3.5.0"
 )
 
 from pyspark.sql import SparkSession
