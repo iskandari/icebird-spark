@@ -2,7 +2,10 @@ version: '3.8'
 
 services:
   spark-master:
-    container_name: my-spark-master
+    build:
+      context: ./spark
+      dockerfile: Dockerfile
+    container_name: icebird-spark-master
     image: my-custom-spark-image
     entrypoint: ['/opt/entrypoint.sh', 'master']
     environment:
@@ -24,7 +27,9 @@ services:
       - .env.spark
 
   spark-worker:
-    image: my-custom-spark-image
+    build:
+      context: ./spark
+      dockerfile: Dockerfile
     entrypoint: ['/opt/entrypoint.sh', 'worker']
     environment:
       - AWS_ACCESS_KEY_ID
@@ -39,7 +44,9 @@ services:
       - ./data:/opt/spark/data
 
   spark-history-server:
-    image: my-custom-spark-image
+    build:
+      context: ./spark
+      dockerfile: Dockerfile
     entrypoint: ['/opt/entrypoint.sh', 'history']
     environment:
       - AWS_ACCESS_KEY_ID
@@ -54,5 +61,22 @@ services:
       - '18080:18080'
     volumes:
       - ./spark-events:/opt/spark/spark-events
+  jupyter-notebook:
+    image: jupyter/all-spark-notebook
+    command: start.sh jupyter notebook --NotebookApp.token=''
+    environment:
+      - JUPYTER_ENABLE_LAB=yes  # if you want JupyterLab interface
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
+      - AWS_SESSION_TOKEN
+      - AWS_REGION
+      - SPARK_MASTER=spark://spark-master:7077
+    ports:
+      - '9999:8888'  # Expose Jupyter notebook port
+    volumes:
+      - ./notebooks:/home/jovyan/work  # Mount a volume for notebook persistence
+    depends_on:
+      - spark-master
 volumes:
   spark-events:
+

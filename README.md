@@ -5,39 +5,8 @@ Run a local spark cluster enabled with Apache Iceberg AWS integrations.
 
 ## Docker Setup
 
-### Prerequisites
-
-Before you begin, ensure you have the following prerequisites installed and configured:
-
-- **Docker**: Please follow the [Docker installation guide](https://docs.docker.com/get-docker/).
-- **AWS CLI**: Ensure AWS CLI is installed and configured for SSO. Follow the [AWS CLI configuration guide](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-sso.html).
-- **`aws-sso-creds` y**: Helper utility for managing AWS SSO credentials [repo](https://github.com/jaxxstorm/aws-sso-creds).
-
 ### Configuration
 
-To interact with AWS services from within the Spark cluster the following environment variables must set:
-
-- `AWS_ACCESS_KEY_ID`
-- `AWS_SECRET_ACCESS_KEY`
-- `AWS_SESSION_TOKEN`
-- `AWS_REGION`
-
-These credentials are necessary for Spark executors to authenticate with AWS services.
-
-#### Setting up AWS SSO 
-
-If you are using AWS Single Sign-On (SSO), export temporary credentials via the `aws-sso-creds` utility. 
-
-```sh
-aws sso login --profile my-sso-profile
-aws-sso-creds export -p my-sso-profile
-
-#export region
-export AWS_REGION=us-east-1
-
-#show env variables
-env | grep AWS_
-```
 
 ## Starting the Spark cluster
 
@@ -57,41 +26,6 @@ To run the cluster in the background, add the -d flag:
 docker-compose up -d --scale spark-worker=3
 ```
 
-## Connecting with Python
-
-Import your sso credentials
-
-```python
-import os
-import subprocess
-import re
-
-# Import creds into python
-command = "aws-sso-creds export -p sso-admin"
-result = subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-
-
-for line in result.stdout.strip().split('\n'):
-    if line.startswith('export '):
-        # Split the line into key and value based on the first '=' found
-        key, value = line.split('=', 1)
-        key = key.replace('export ', '').strip()
-        value = value.strip()
-        os.environ[key] = value
-
-# Verify the environment variables are set
-print(os.getenv('AWS_ACCESS_KEY_ID'))
-print(os.getenv('AWS_SECRET_ACCESS_KEY'))
-print(os.getenv('AWS_SESSION_TOKEN'))
-
-os.environ['AWS_REGION'] = 'us-east-1'
-
-credentials = {
-'AccessKeyId': os.environ['AWS_ACCESS_KEY_ID'],
-'SecretAccessKey': os.environ['AWS_SECRET_ACCESS_KEY'],
-'SessionToken': os.environ['AWS_SESSION_TOKEN']
-}
-```
 
 Define a config for your Spark context
 
@@ -106,12 +40,18 @@ jars_packages = (
 
 from pyspark.sql import SparkSession
 
+from pyspark.sql import SparkSession
+
 spark = SparkSession.builder \
     .appName("Iceberg with Jupyter") \
-    .master("spark://localhost:7077") \
+    .master("local[*]") \
     .config("spark.driver.memory", "30g") \
     .config("spark.executor.memory", "15g") \
+    .config("spark.dynamicAllocation.enabled", "true") \
+    .config("spark.shuffle.service.enabled", "true") \
+    .config("spark.dynamicAllocation.maxExecutors", "10") \
     .config("spark.jars.packages", jars_packages) \
+    .config("mapreduce.fileoutputcommitter.algorithm.version", "2") \
     .config("spark.sql.catalog.glue_catalog", "org.apache.iceberg.spark.SparkCatalog") \
     .config("spark.sql.catalog.glue_catalog.warehouse", warehouse_dir) \
     .config("spark.sql.catalog.glue_catalog.catalog-impl", "org.apache.iceberg.aws.glue.GlueCatalog") \
@@ -121,10 +61,18 @@ spark = SparkSession.builder \
     .config("spark.sql.catalog.local.warehouse", "s3a://icevogel") \
     .config("spark.sql.catalog.my_catalog.io-impl", "org.apache.iceberg.aws.s3.S3FileIO") \
     .config("spark.hadoop.fs.s3a.fast.upload", "true") \
+    .config("spark.hadoop.fs.s3a.bucket.all.committer.magic.enabled", "true") \
     .config("spark.hadoop.fs.s3.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem") \
-    .config("spark.hadoop.fs.s3a.aws.credentials.provider", "org.apache.hadoop.fs.s3a.TemporaryAWSCredentialsProvider") \
+    .config("spark.hadoop.fs.s3a.aws.credentials.provider", "com.amazonaws.auth.profile.ProfileCredentialsProvider") \
+    .config("spark.hadoop.fs.s3a.access.key", credentials['AccessKeyId']) \
+    .config("spark.hadoop.fs.s3a.secret.key", credentials['SecretAccessKey']) \
+    .config("spark.hadoop.fs.s3a.connection.timeout", "60000")  \
+    .config("spark.hadoop.fs.s3a.socket.timeout", "180000") \
+    .config("spark.serializer", KryoSerializer.getName) \
+    .config("spark.kryo.registrator",  SedonaKryoRegistrator.getName) \
+    .config('spark.sql.session.timeZone', 'UTC') \
+    .config("spark.sql.sources.partitionOverwriteMode", "dynamic") \
     .getOrCreate()
-
 
 from pyspark.sql import functions as F
 from pyspark.sql.types import DecimalType
