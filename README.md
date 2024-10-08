@@ -9,6 +9,9 @@ Run a local spark cluster enabled with Apache Iceberg AWS integrations.
 
 ### Configuration
 
+Docker Desktop > Resources 
+make sure CPUs and Memory are set to the max 
+
 Download jar files from our S3 bucket
 
 ```sh
