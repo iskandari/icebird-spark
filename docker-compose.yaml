@@ -32,6 +32,8 @@ services:
       dockerfile: Dockerfile
     entrypoint: ['/opt/entrypoint.sh', 'worker']
     environment:
+      - SPARK_WORKER_CORES=8
+      - SPARK_WORKER_MEMORY=30g
       - AWS_ACCESS_KEY_ID
       - AWS_SECRET_ACCESS_KEY
       - AWS_SESSION_TOKEN
@@ -62,15 +64,15 @@ services:
     volumes:
       - ./spark-events:/opt/spark/spark-events
   jupyter-notebook:
-    image: jupyter/all-spark-notebook
-    command: start.sh jupyter notebook --NotebookApp.token=''
+    build:
+      context: ./spark
+      dockerfile: Dockerfile.jupyter
+    command: "start-notebook.sh --NotebookApp.token='' --NotebookApp.password=''"
     environment:
       - JUPYTER_ENABLE_LAB=yes  # if you want JupyterLab interface
-      - AWS_ACCESS_KEY_ID
-      - AWS_SECRET_ACCESS_KEY
-      - AWS_SESSION_TOKEN
-      - AWS_REGION
       - SPARK_MASTER=spark://spark-master:7077
+    env_file:
+      - .env.spark
     ports:
       - '9999:8888'  # Expose Jupyter notebook port
     volumes:
